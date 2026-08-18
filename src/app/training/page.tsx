@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { getSavedMistakes, SavedMistake } from "@/lib/persistence/db"
-import { Chessboard } from "react-chessboard"
+import { Chessboard } from "@/components/chess/ChessboardWrapper"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Chess } from "chess.js"
@@ -62,6 +62,7 @@ export default function TrainingPage() {
         <div className="aspect-square w-full max-w-[500px] mx-auto">
           <Chessboard 
             options={{
+              id: "TrainingBoard",
               position: currentMistake.fenBefore,
               onPieceDrop: handlePieceDrop,
               boardOrientation: new Chess(currentMistake.fenBefore).turn() === "w" ? "white" : "black"
