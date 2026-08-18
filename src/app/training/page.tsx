@@ -60,12 +60,11 @@ export default function TrainingPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-8">
         <div className="aspect-square w-full max-w-[500px] mx-auto">
+          {/* @ts-ignore */}
           <Chessboard 
-            {...({
-              position: currentMistake.fenBefore,
-              onPieceDrop: handlePieceDrop,
-              boardOrientation: new Chess(currentMistake.fenBefore).turn() === "w" ? "white" : "black"
-            } as any)}
+            position={currentMistake.fenBefore}
+            onPieceDrop={handlePieceDrop}
+            boardOrientation={new Chess(currentMistake.fenBefore).turn() === "w" ? "white" : "black"}
           />
         </div>
 
