@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { playerSchema, archivesSchema, monthlyGamesSchema, ChesscomPlayer, ChesscomGame } from "../validation/chesscom";
 
-const USER_AGENT = process.env.CHESSCOM_USER_AGENT || "ChessCoach/1.0";
+const USER_AGENT = process.env.CHESSCOM_USER_AGENT || "ChessAnalyzer-Local/1.0 (mailto:admin@chessanalyzer.local)";
 
 const headers = {
   "User-Agent": USER_AGENT,
@@ -16,7 +16,11 @@ export class ChesscomError extends Error {
 }
 
 async function fetchJson<T>(url: string): Promise<T> {
-  const response = await fetch(url, { headers });
+  const response = await fetch(url, { 
+    headers,
+    cache: 'no-store',
+    next: { revalidate: 0 }
+  });
   
   if (!response.ok) {
     if (response.status === 404) {
