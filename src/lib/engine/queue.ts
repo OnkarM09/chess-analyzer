@@ -70,11 +70,18 @@ export class AnalysisQueue {
   private async processNext() {
     if (this.isProcessing || this.queue.length === 0) return;
     
+    this.isProcessing = true;
+
     if (!this.engine) {
-      await this.init();
+      try {
+        await this.init();
+      } catch (err) {
+        console.error("Failed to init engine", err);
+        this.isProcessing = false;
+        return;
+      }
     }
 
-    this.isProcessing = true;
     this.currentTask = this.queue.shift() || null;
 
     if (this.currentTask) {
@@ -87,7 +94,7 @@ export class AnalysisQueue {
           this.currentTask.onResult(result);
         }
       } catch (error: any) {
-        if (this.currentTask.onError && error.message !== "Analysis cancelled") {
+        if (this.currentTask?.onError && error?.message !== "Analysis cancelled") {
           this.currentTask.onError(error);
         }
       }
