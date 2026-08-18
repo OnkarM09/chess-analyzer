@@ -120,7 +120,7 @@ function ReviewPage() {
     }
   }
 
-  const generateFinalSummary = (clss: Record<number, ClassifiedMove>, gameMoves: GameMove[]) => {
+  const generateFinalSummary = async (clss: Record<number, ClassifiedMove>, gameMoves: GameMove[]) => {
     const wLosses: number[] = []
     const bLosses: number[] = []
     const wCls: MoveClassification[] = []
@@ -137,7 +137,44 @@ function ReviewPage() {
       }
     })
     
-    setSummary(generateSummary(wLosses, bLosses, wCls, bCls))
+    const finalSummary = generateSummary(wLosses, bLosses, wCls, bCls)
+    setSummary(finalSummary)
+
+    // Save to indexedDB
+    try {
+      const { saveGameResult, saveMistake } = await import("@/lib/persistence/db")
+      
+      const gameId = Date.now().toString()
+      await saveGameResult({
+        id: gameId,
+        pgn,
+        summary: finalSummary,
+        date: Date.now(),
+        playerColor: "w", // Defaulting to White for custom PGNs right now, would be parsed from username usually
+      })
+
+      // Save blunders/mistakes
+      Object.entries(clss).forEach(([plyStr, cls]) => {
+        const ply = parseInt(plyStr)
+        if (["MISTAKE", "BLUNDER"].includes(cls.classification)) {
+          const move = gameMoves[ply - 1]
+          const evalBefore = evaluations[ply - 1]
+          if (evalBefore && evalBefore.bestmove) {
+            saveMistake({
+              id: `${gameId}_${ply}`,
+              gameId,
+              fenBefore: move.fenBefore,
+              playedMove: move.san,
+              bestMove: evalBefore.bestmove,
+              tags: [cls.classification as any],
+              date: Date.now()
+            })
+          }
+        }
+      })
+    } catch (e) {
+      console.error("Failed to save to db", e)
+    }
   }
 
   const playMoveSound = () => {
