@@ -310,10 +310,12 @@ function ReviewPage() {
             {/* Board */}
             <div className="w-full max-w-[300px] sm:max-w-[400px] md:max-w-[600px] aspect-square flex items-center">
               <Chessboard 
-                position={boardFen} 
-                boardOrientation="white"
-                customArrows={customArrows}
-                customArrowColor="rgba(34, 197, 94, 0.5)" // Greenish best move
+                {...({
+                  position: boardFen,
+                  boardOrientation: "white",
+                  customArrows,
+                  customArrowColor: "rgba(34, 197, 94, 0.5)"
+                } as any)}
               />
             </div>
           </div>

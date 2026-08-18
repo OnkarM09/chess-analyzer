@@ -48,10 +48,15 @@ export function parseGameFromPgn(pgn: string): ParsedGame {
     });
   }
 
-  const resultHeader = chess.header().Result || "*";
+  const rawHeaders = chess.header();
+  const headers: Record<string, string> = {};
+  for (const [k, v] of Object.entries(rawHeaders)) {
+    if (v !== null) headers[k] = v;
+  }
+  const resultHeader = headers.Result || "*";
   
   return {
-    headers: chess.header(),
+    headers,
     moves,
     result: resultHeader,
   };

@@ -1,12 +1,12 @@
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { GameMove } from "@/lib/chess/parser";
-import { MoveClassification } from "@/lib/review/classification";
+import { MoveClassification, ClassifiedMove } from "@/lib/review/classification";
 
 interface MoveListProps {
   moves: GameMove[];
   currentMoveIndex: number;
-  classifications: Record<number, MoveClassification>;
+  classifications: Record<number, ClassifiedMove>;
   onMoveSelect: (index: number) => void;
 }
 
@@ -76,9 +76,9 @@ export function MoveList({ moves, currentMoveIndex, classifications, onMoveSelec
               )}
             >
               <span>{row.white.san}</span>
-              {classifications[row.whiteIndex] && (
-                <span className={cn("text-xs font-bold", getClassificationColor(classifications[row.whiteIndex]))}>
-                  {getClassificationIcon(classifications[row.whiteIndex])}
+              {classifications[row.whiteIndex + 1] && (
+                <span className={cn("text-xs font-bold", getClassificationColor(classifications[row.whiteIndex + 1].classification))}>
+                  {getClassificationIcon(classifications[row.whiteIndex + 1].classification)}
                 </span>
               )}
             </button>
@@ -93,9 +93,9 @@ export function MoveList({ moves, currentMoveIndex, classifications, onMoveSelec
                 )}
               >
                 <span>{row.black.san}</span>
-                {classifications[row.blackIndex] && (
-                  <span className={cn("text-xs font-bold", getClassificationColor(classifications[row.blackIndex]))}>
-                    {getClassificationIcon(classifications[row.blackIndex])}
+                {classifications[row.blackIndex + 1] && (
+                  <span className={cn("text-xs font-bold", getClassificationColor(classifications[row.blackIndex + 1].classification))}>
+                    {getClassificationIcon(classifications[row.blackIndex + 1].classification)}
                   </span>
                 )}
               </button>

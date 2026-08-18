@@ -1,23 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
-import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
-  title: "ChessCoach - AI Chess Game Review",
-  description: "Review your chess games with Stockfish and Gemini AI",
+  title: "ChessCoach - AI Chess Analysis",
+  description: "Upload games, get AI-powered insights, and track your weaknesses.",
 };
 
 export default function RootLayout({
@@ -28,7 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground`}
+        className={`antialiased min-h-screen bg-background font-sans text-foreground flex flex-col`}
       >
         <ThemeProvider
           attribute="class"
