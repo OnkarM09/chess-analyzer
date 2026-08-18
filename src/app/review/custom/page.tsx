@@ -325,12 +325,12 @@ function ReviewPage() {
             
             {/* Board */}
             <div className="w-full max-w-[300px] sm:max-w-[400px] md:max-w-[600px] aspect-square flex items-center">
-              {/* @ts-ignore */}
               <Chessboard 
-                position={displayFen}
-                boardOrientation="white"
-                customArrows={customArrows}
-                customArrowColor="rgba(34, 197, 94, 0.5)"
+                options={{
+                  position: displayFen,
+                  boardOrientation: "white",
+                  arrows: customArrows.length > 0 ? customArrows.map(a => ({ startSquare: a[0], endSquare: a[1], color: "rgba(34, 197, 94, 0.5)" })) : undefined
+                }}
               />
             </div>
 
