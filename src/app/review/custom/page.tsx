@@ -19,7 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { CoachingResponse } from "@/lib/coaching/schema"
 import { generateSummary, ReviewSummary } from "@/lib/review/accuracy"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Undo2, Zap } from "lucide-react"
 
 export default function ReviewPageWrapper() {
   return (
@@ -35,6 +35,7 @@ function ReviewPage() {
   const [moves, setMoves] = useState<GameMove[]>([])
   const [currentMoveIndex, setCurrentMoveIndex] = useState(-1) // -1 means initial position
   const [boardFen, setBoardFen] = useState("start")
+  const [isShowingBestMove, setIsShowingBestMove] = useState(false)
   
   // Analysis State
   const [evaluations, setEvaluations] = useState<Record<number, EngineEvaluation>>({})
@@ -191,6 +192,7 @@ function ReviewPage() {
     }
 
     setCurrentMoveIndex(index)
+    setIsShowingBestMove(false)
     if (index === -1) {
       setBoardFen("start")
     } else {
@@ -270,12 +272,26 @@ function ReviewPage() {
   const currentNormalizedEval = currentEval ? normalizeEval(currentEval, "w") : null
   const currentClassifications = classifications // Note: classifications are keyed by ply (1-indexed based on moves)
   
-  // Custom arrows for best move
   const customArrows: [string, string][] = []
-  if (currentEval && currentEval.bestmove) {
+  
+  if (currentEval?.bestmove && !isShowingBestMove) {
     const from = currentEval.bestmove.substring(0, 2)
     const to = currentEval.bestmove.substring(2, 4)
     customArrows.push([from, to])
+  }
+
+  let displayFen = boardFen;
+  if (isShowingBestMove && currentEval?.bestmove) {
+    try {
+      const c = new Chess(boardFen === "start" ? undefined : boardFen);
+      const from = currentEval.bestmove.substring(0, 2);
+      const to = currentEval.bestmove.substring(2, 4);
+      const promotion = currentEval.bestmove.length > 4 ? currentEval.bestmove.substring(4) : undefined;
+      c.move({ from, to, promotion });
+      displayFen = c.fen();
+    } catch (e) {
+      // ignore invalid moves
+    }
   }
 
   return (
@@ -311,11 +327,29 @@ function ReviewPage() {
             <div className="w-full max-w-[300px] sm:max-w-[400px] md:max-w-[600px] aspect-square flex items-center">
               {/* @ts-ignore */}
               <Chessboard 
-                position={boardFen}
+                position={displayFen}
                 boardOrientation="white"
                 customArrows={customArrows}
                 customArrowColor="rgba(34, 197, 94, 0.5)"
               />
+            </div>
+
+            {/* Best Move Actions */}
+            <div className="flex gap-2 justify-center w-full mt-2">
+              {isShowingBestMove ? (
+                <Button variant="outline" className="w-full sm:w-auto" onClick={() => setIsShowingBestMove(false)}>
+                  <Undo2 className="h-4 w-4 mr-2" /> Back to Game
+                </Button>
+              ) : (
+                <Button 
+                  variant="secondary" 
+                  className="w-full sm:w-auto"
+                  onClick={() => setIsShowingBestMove(true)}
+                  disabled={!currentEval?.bestmove}
+                >
+                  <Zap className="h-4 w-4 mr-2 text-yellow-500" /> Show Best Move
+                </Button>
+              )}
             </div>
           </div>
           
@@ -353,19 +387,57 @@ function ReviewPage() {
               <CardHeader>
                 <CardTitle>Game Summary</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-lg">Accuracy</span>
+              <CardContent className="space-y-6">
+                {/* Accuracy */}
+                <div>
+                  <h3 className="font-semibold text-lg border-b pb-2 mb-3">Accuracy</h3>
+                  <div className="flex justify-between items-center text-sm font-medium">
+                    <span className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm bg-white border border-gray-400"></div> White</span>
+                    <span className="text-lg">{summary.accuracy.white}%</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm font-medium mt-2">
+                    <span className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm bg-zinc-800 border border-gray-600"></div> Black</span>
+                    <span className="text-lg">{summary.accuracy.black}%</span>
+                  </div>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span>White: {summary.accuracy.white}%</span>
-                  <span>Black: {summary.accuracy.black}%</span>
-                </div>
-                <div className="space-y-1 text-sm mt-4">
-                  <p className="font-semibold mb-2">Blunders</p>
-                  <div className="flex justify-between text-red-500">
-                    <span>White: {summary.mistakeCounts.white.BLUNDER}</span>
-                    <span>Black: {summary.mistakeCounts.black.BLUNDER}</span>
+
+                {/* Move Classifications */}
+                <div>
+                  <h3 className="font-semibold text-lg border-b pb-2 mb-3">Performance</h3>
+                  <div className="grid grid-cols-3 gap-2 text-sm text-center font-medium mb-2 pb-1 border-b">
+                    <div className="text-left text-muted-foreground">Move</div>
+                    <div className="text-muted-foreground">White</div>
+                    <div className="text-muted-foreground">Black</div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-sm text-center py-1">
+                    <div className="text-left text-blue-500 font-semibold">Best/Book</div>
+                    <div>{summary.mistakeCounts.white.BEST + summary.mistakeCounts.white.BOOK}</div>
+                    <div>{summary.mistakeCounts.black.BEST + summary.mistakeCounts.black.BOOK}</div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-sm text-center py-1">
+                    <div className="text-left text-green-500 font-semibold">Good</div>
+                    <div>{summary.mistakeCounts.white.GOOD}</div>
+                    <div>{summary.mistakeCounts.black.GOOD}</div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-sm text-center py-1 bg-muted/30 rounded">
+                    <div className="text-left text-yellow-500 font-semibold">Inaccuracy</div>
+                    <div>{summary.mistakeCounts.white.INACCURACY}</div>
+                    <div>{summary.mistakeCounts.black.INACCURACY}</div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-sm text-center py-1 bg-muted/30 rounded">
+                    <div className="text-left text-orange-500 font-semibold">Mistake</div>
+                    <div>{summary.mistakeCounts.white.MISTAKE}</div>
+                    <div>{summary.mistakeCounts.black.MISTAKE}</div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-sm text-center py-1 bg-muted/30 rounded">
+                    <div className="text-left text-red-500 font-semibold">Blunder</div>
+                    <div>{summary.mistakeCounts.white.BLUNDER}</div>
+                    <div>{summary.mistakeCounts.black.BLUNDER}</div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-sm text-center py-1">
+                    <div className="text-left text-purple-500 font-semibold">Missed Win</div>
+                    <div>{summary.mistakeCounts.white.MISSED_WIN}</div>
+                    <div>{summary.mistakeCounts.black.MISSED_WIN}</div>
                   </div>
                 </div>
               </CardContent>
