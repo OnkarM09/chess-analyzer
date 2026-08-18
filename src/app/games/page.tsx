@@ -46,7 +46,9 @@ function GamesList() {
       try {
         setLoading(true)
         setError("")
-        const res = await fetch(`/api/chesscom/games?username=${encodeURIComponent(username)}`)
+        const res = await fetch(`/api/chesscom/games?username=${encodeURIComponent(username)}&_t=${Date.now()}`, {
+          cache: 'no-store'
+        })
         const data = await res.json()
         
         if (!res.ok) {

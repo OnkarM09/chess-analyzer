@@ -326,12 +326,10 @@ function ReviewPage() {
             {/* Board */}
             <div className="w-full max-w-[300px] sm:max-w-[400px] md:max-w-[600px] aspect-square flex items-center">
               <Chessboard 
-                options={{
-                  id: "ReviewBoard",
-                  position: displayFen,
-                  boardOrientation: "white",
-                  arrows: customArrows.length > 0 ? customArrows.map(a => ({ startSquare: a[0], endSquare: a[1], color: "rgba(34, 197, 94, 0.5)" })) : undefined
-                }}
+                id="ReviewBoard"
+                position={displayFen}
+                boardOrientation="white"
+                customArrows={customArrows.length > 0 ? customArrows.map(a => [a[0], a[1], "rgba(34, 197, 94, 0.5)"]) : undefined}
               />
             </div>
 
